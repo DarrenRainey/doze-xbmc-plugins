@@ -1,0 +1,3 @@
+<settings>
+   <setting id="display_date" type="bool" label="30100" default="true"/>
+</settings>
