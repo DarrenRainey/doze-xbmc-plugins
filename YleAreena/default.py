@@ -495,14 +495,9 @@ class YleAreena:
     rePattern = re.compile('<a href=\"/toista\?id=([^\"]+)\"><img src=\"([^\"]+)\"[^a]+alt=\"([^\"]+)\".*?time">(.{10,20})', re.IGNORECASE + re.DOTALL + re.MULTILINE)
     matches = rePattern.findall(data)
     for id, imgUrl, name, date in matches:
-      title = ''
-      if (xbmcplugin.getSetting("display_date") == "true"):
-        title = date +' - '+name
-      else:
-        title = name
       liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultVideo.png",thumbnailImage=imgUrl)
-      liz.setInfo( "video", { "Title"        : clean1(clean2(clean3(smart_unicode(title)))),
-                "Date"          : date[4:5]+"-"+date[:2]+"-"+date[7:10]
+      liz.setInfo( "video", { "Title"        : clean1(clean2(clean3(smart_unicode(name)))),
+                "Date"          : date[:2]+"-"+date[3:5]+"-"+date[6:10]
                 })
       ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url = 'http://www.yle.fi/java/areena/dispatcher/'+id+'.asx?bitrate=1000000',listitem=liz,isFolder=False,totalItems=len(matches))
   
