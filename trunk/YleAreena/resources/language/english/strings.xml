@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
 <!-- strings 30000 thru 30999 reserved for plugins and plugin settings -->
 <strings>
-  <string id="30100">Display date in title</string>
   <string id="30200">Next page</string>
   <string id="30201">Programs A-Z</string>
   <string id="30202">Search from Arena</string>
