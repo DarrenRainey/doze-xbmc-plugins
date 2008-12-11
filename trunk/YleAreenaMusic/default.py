@@ -452,7 +452,7 @@ class YleAreena:
     rePattern = re.compile('<a href="/hae\?pid=([^\"]+)\">([^<]+)</a>[^>]+>[^>]+>[^>]+>[^>]+>[1-9]', re.IGNORECASE + re.DOTALL + re.MULTILINE)
     matches = rePattern.findall(data)
     for id, name in matches:
-      liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultVideo.png")
+      liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultAudio.png")
       ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url = sys.argv[0] + "?action=browse_episodes&id="+id,listitem=liz,isFolder=True,totalItems=len(matches))
   
   def browsePodcasts(self, url):
@@ -461,7 +461,7 @@ class YleAreena:
     rePattern = re.compile('<td class="product">(<a href="/hae\?pid=[^\"]+\">)?([^<]+)(</a>)?.*?podcast\"><a href=\"([^\"]+)', re.IGNORECASE + re.DOTALL + re.MULTILINE)
     matches = rePattern.findall(data)
     for notused1, name, notused2, url in matches:
-        liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultVideo.png")
+        liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultAudio.png")
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url = sys.argv[0] + "?action=browse_podcast_episodes&url="+quote_safe(url),listitem=liz,isFolder=True,totalItems=len(matches))
                 
   def browseEpisodes(self, url):
@@ -493,7 +493,7 @@ class YleAreena:
       currentpage = url[pos+3:]
     #if more pages exists, make the link 
     if (nextpage > 1 and nextpage != currentpage):
-      liz=xbmcgui.ListItem(xbmc.getLocalizedString(30200),iconImage="DefaultVideo.png", thumbnailImage=os.path.join(imgDir, 'next.png'))
+      liz=xbmcgui.ListItem(xbmc.getLocalizedString(30200),iconImage="DefaultAudio.png", thumbnailImage=os.path.join(imgDir, 'next.png'))
       nextUrl = ''
       if (currentpage == 0):
         nextUrl = url + '&s=' + nextpage
@@ -504,7 +504,7 @@ class YleAreena:
     rePattern = re.compile('<a href=\"/toista\?id=([^\"]+)\"><img src=\"([^\"]+)\"[^a]+alt=\"([^\"]+)\".*?time">(.{10,20})', re.IGNORECASE + re.DOTALL + re.MULTILINE)
     matches = rePattern.findall(data)
     for id, imgUrl, name, date in matches:
-      liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultVideo.png",thumbnailImage=imgUrl)
+      liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultAudio.png",thumbnailImage=imgUrl)
       liz.setInfo( "music", { "Title"        : clean1(clean2(clean3(smart_unicode(name)))),
                 "Date"          : date[:2]+"-"+date[3:5]+"-"+date[6:10]
                 })
@@ -519,7 +519,7 @@ class YleAreena:
     rePattern = re.compile('<item.*?<title>(.*?)</title>.*?enclosure url="([^\"]+)', re.IGNORECASE + re.DOTALL + re.MULTILINE)
     matches = rePattern.findall(data)
     for name, url in matches:
-        liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultVideo.png")
+        liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultAudio.png")
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url = sys.argv[0] + "?action=play_episode&url="+quote_safe(url),listitem=liz,isFolder=False,totalItems=len(matches))
          
   def doSearch(self):
@@ -590,15 +590,20 @@ if (params != ""):
     url = param.get('url', '')
     if (url != ''):
       y.playEpisode(unquote_safe(url))
+  elif (urllib.unquote_plus(param['action']) == "browse_live"):
+    liz=xbmcgui.ListItem('YLE Radio 1',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/yleradio1.asx', listitem = liz, isFolder = False)
+  
 #no parameters set, open default view
 else:
-  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30201),iconImage="DefaultVideo.png")
+  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30201),iconImage="DefaultAudio.png")
   ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_programs", listitem = liz, isFolder = True)
-  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30202),iconImage="DefaultVideo.png")
+  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30202),iconImage="DefaultAudio.png")
   ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=search", listitem = liz, isFolder = True)
-  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30205),iconImage="DefaultVideo.png")
+  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30205),iconImage="DefaultAudio.png")
   ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_podcasts", listitem = liz, isFolder = True)
-  
+  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30206),iconImage="DefaultAudio.png")
+  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_live", listitem = liz, isFolder = True)  
 
     
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
