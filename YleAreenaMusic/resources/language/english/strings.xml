@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="ISO-8859-1" standalone="yes"?>
+<!-- strings 30000 thru 30999 reserved for plugins and plugin settings -->
+<strings>
+  <string id="30200">Next page</string>
+  <string id="30201">Programs A-Z</string>
+  <string id="30202">Search from Arena</string>
+  <string id="30203">Search returned over 100 matches. Try more specific keyword.</string>
+  <string id="30204">Search did not find any matches. Try another keyword.</string>
+  <string id="30205">Podcast</string>
+</strings>
