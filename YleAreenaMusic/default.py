@@ -449,12 +449,11 @@ class YleAreena:
   def browsePrograms(self, url):
     data = self.openUrl(url)
     #search and add programs
-    rePattern = re.compile('<a href="/hae\?pid=([^\"]+)\">([^<]+)</a>[^>]+>[^>]+>[^>]+>[^>]+>([^<]+)', re.IGNORECASE + re.DOTALL + re.MULTILINE)
+    rePattern = re.compile('<a href="/hae\?pid=([^\"]+)\">([^<]+)</a>[^>]+>[^>]+>[^>]+>[^>]+>[1-9]', re.IGNORECASE + re.DOTALL + re.MULTILINE)
     matches = rePattern.findall(data)
-    for id, name, count in matches:
-      if (count != '0'):
-        liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultVideo.png")
-        ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url = sys.argv[0] + "?action=browse_episodes&id="+id,listitem=liz,isFolder=True,totalItems=len(matches))
+    for id, name in matches:
+      liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultVideo.png")
+      ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url = sys.argv[0] + "?action=browse_episodes&id="+id,listitem=liz,isFolder=True,totalItems=len(matches))
   
   def browsePodcasts(self, url):
     data = self.openUrl(url)
@@ -506,10 +505,13 @@ class YleAreena:
     matches = rePattern.findall(data)
     for id, imgUrl, name, date in matches:
       liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultVideo.png",thumbnailImage=imgUrl)
-      liz.setInfo( "video", { "Title"        : clean1(clean2(clean3(smart_unicode(name)))),
+      liz.setInfo( "music", { "Title"        : clean1(clean2(clean3(smart_unicode(name)))),
                 "Date"          : date[:2]+"-"+date[3:5]+"-"+date[6:10]
                 })
-      ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url = 'http://www.yle.fi/java/areena/dispatcher/'+id+'.asx?bitrate=1000000',listitem=liz,isFolder=False,totalItems=len(matches))
+      ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url = sys.argv[0] + "?action=play_episode&url="+quote_safe('http://www.yle.fi/java/areena/dispatcher/'+id+'.asx?bitrate=1000000'),listitem=liz,isFolder=False,totalItems=len(matches))
+  
+  def playEpisode(self, url):
+    player = xbmc.Player( xbmc.PLAYER_CORE_MPLAYER ).play(url)
   
   def browsePodcastEpisodes(self, url):
     data = self.openUrl(url)
@@ -518,7 +520,7 @@ class YleAreena:
     matches = rePattern.findall(data)
     for name, url in matches:
         liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultVideo.png")
-        ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url = url,listitem=liz,isFolder=True,totalItems=len(matches))
+        ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url = sys.argv[0] + "?action=play_episode&url="+quote_safe(url),listitem=liz,isFolder=False,totalItems=len(matches))
          
   def doSearch(self):
     #open keyboard with last search entry, if exists
@@ -584,6 +586,10 @@ if (params != ""):
     xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
     xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_DATE )
     y.doSearch()
+  elif (urllib.unquote_plus(param['action']) == "play_episode"):
+    url = param.get('url', '')
+    if (url != ''):
+      y.playEpisode(unquote_safe(url))
 #no parameters set, open default view
 else:
   liz=xbmcgui.ListItem(xbmc.getLocalizedString(30201),iconImage="DefaultVideo.png")
