@@ -449,11 +449,12 @@ class YleAreena:
   def browsePrograms(self, url):
     data = self.openUrl(url)
     #search and add programs
-    rePattern = re.compile('<a href="/hae\?pid=([^\"]+)\">([^<]+)</a>', re.IGNORECASE + re.DOTALL + re.MULTILINE)
+    rePattern = re.compile('<a href="/hae\?pid=([^\"]+)\">([^<]+)</a>[^>]+>[^>]+>([^<]+)', re.IGNORECASE + re.DOTALL + re.MULTILINE)
     matches = rePattern.findall(data)
-    for id, name in matches:
-      liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultVideo.png")
-      ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url = sys.argv[0] + "?action=browse_episodes&id="+id,listitem=liz,isFolder=True,totalItems=len(matches))
+    for id, name, count in matches:
+      if (count != '0'):
+        liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultVideo.png")
+        ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url = sys.argv[0] + "?action=browse_episodes&id="+id,listitem=liz,isFolder=True,totalItems=len(matches))
   
   def browseEpisodes(self, url):
     data = self.openUrl(url)
@@ -515,7 +516,7 @@ class YleAreena:
     f.write(search_phrase)
     f.close()
     #show episodes matching keyword
-    self.browseEpisodes('http://areena.yle.fi/hae?keyword='+search_phrase)
+    self.browseEpisodes('http://areena.yle.fi/hae?keyword='+search_phrase+'&filter=1,1')
   
 #main logic
 y=YleAreena()
@@ -547,7 +548,7 @@ if (params != ""):
     nextUrl = param.get('nextUrl', '')
     #if id is given, display first page
     if (id != ''):
-      y.browseEpisodes('http://areena.yle.fi/hae?pid='+id)
+      y.browseEpisodes('http://areena.yle.fi/hae?pid='+id+'&filter=1,1')
     #if nextUrl is given, display that page
     elif (nextUrl != ''):
       y.browseEpisodes(unquote_safe(nextUrl))
@@ -562,5 +563,7 @@ else:
   ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_programs", listitem = liz, isFolder = True)
   liz=xbmcgui.ListItem(xbmc.getLocalizedString(30202),iconImage="DefaultVideo.png")
   ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=search", listitem = liz, isFolder = True)
+  liz=xbmcgui.ListItem('YleX TV',iconImage="DefaultVideo.png")
+  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/ylevideo4.asx?bitrate=1000000', listitem = liz, isFolder = False)
     
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
