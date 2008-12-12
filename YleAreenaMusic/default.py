@@ -15,9 +15,9 @@ import socket
 __plugin__ = "YleAreena"
 __author__ = "doze"
 __url__ = "http://code.google.com/p/doze-xbmc-plugins/"
-__svn_url__ = "http://doze-xbmc-plugins.googlecode.com/svn/trunk/YleAreena"
+__svn_url__ = "http://doze-xbmc-plugins.googlecode.com/svn/trunk/YleAreenaMusic"
 __credits__ = "Team XBMC + All plugin developers"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 rootDir = xbmc.translatePath( os.path.join( os.getcwd().replace( ";", "" )))
 cacheDir = os.path.join(rootDir, 'cache')
@@ -439,10 +439,10 @@ class YleAreena:
       cFile.close()
     except Exception, value:
       dialog = xbmcgui.Dialog()
-      dialog.ok("YleAreena - " +xbmc.getLocalizedString(257), 'Exception:' +'\n'+ str(value) +'\n'+ 'Data:' +'\n'+ str(data))
+      dialog.ok("YleAreena - " +xbmc.getLocalizedString(257), 'URL:' +'\n'+ str(url) +'\n'+  'Exception:' +'\n'+ str(value) +'\n'+ 'Data:' +'\n'+ str(data))
     if (data==""):
       dialog = xbmcgui.Dialog()
-      dialog.ok("YleAreena - " +xbmc.getLocalizedString(257), xbmc.getLocalizedString(284)+ +'\n'+ 'CookieJar:'+ str(self.cookieJar))
+      dialog.ok("YleAreena - " +xbmc.getLocalizedString(257), xbmc.getLocalizedString(284) +'\n'+ 'URL:' +'\n'+ str(url) +'\n'+ 'CookieJar:'+ str(self.cookieJar))
       return
     return data
   
@@ -464,7 +464,7 @@ class YleAreena:
         liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultAudio.png")
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url = sys.argv[0] + "?action=browse_podcast_episodes&url="+quote_safe(url),listitem=liz,isFolder=True,totalItems=len(matches))
                 
-  def browseEpisodes(self, url):
+  def browseEpisodes(self, url, showTitles = 0):
     data = self.openUrl(url)
     #check to see if search returned too many matches
     strre=re.compile('hakuosumia yli 100 kpl', re.IGNORECASE)
@@ -501,9 +501,14 @@ class YleAreena:
         nextUrl = url[:pos+3] + nextpage
       ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url = sys.argv[0] + "?action=browse_episodes&nextUrl="+quote_safe(nextUrl),listitem=liz,isFolder=True)
     #search and add episodes            
-    rePattern = re.compile('<a href=\"/toista\?id=([^\"]+)\"><img src=\"([^\"]+)\"[^a]+alt=\"([^\"]+)\".*?time">(.{10,20})', re.IGNORECASE + re.DOTALL + re.MULTILINE)
+    rePattern = re.compile('<a href=\"/toista\?id=([^\"]+)\"><img src=\"([^\"]+)\"[^a]+alt=\"([^\"]+)\".*?<a[^>]+>(.*?)<.*?time">(.{10,20})', re.IGNORECASE + re.DOTALL + re.MULTILINE)
     matches = rePattern.findall(data)
-    for id, imgUrl, name, date in matches:
+    for id, imgUrl, name, title, date in matches:
+      if (showTitles == 1 and name != title):
+        #strip ending dot from title, if it exists
+        if (title[len(title)-1] == '.'):
+            title = title[0:len(title)-1]
+        name = title + ': ' +name
       liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultAudio.png",thumbnailImage=imgUrl)
       liz.setInfo( "music", { "Title"        : clean1(clean2(clean3(smart_unicode(name)))),
                 "Date"          : date[:2]+"-"+date[3:5]+"-"+date[6:10]
@@ -536,7 +541,7 @@ class YleAreena:
     f.write(search_phrase)
     f.close()
     #show episodes matching keyword
-    self.browseEpisodes('http://areena.yle.fi/hae?keyword='+search_phrase+'&filter=1,2')
+    self.browseEpisodes('http://areena.yle.fi/hae?keyword='+search_phrase+'&filter=1,2', 1)
   
 #main logic
 y=YleAreena()
@@ -580,7 +585,7 @@ if (params != ""):
       y.browseEpisodes('http://areena.yle.fi/hae?pid='+id+'&filter=1,2')
     #if nextUrl is given, display that page
     elif (nextUrl != ''):
-      y.browseEpisodes(unquote_safe(nextUrl))
+      y.browseEpisodes(unquote_safe(nextUrl),1)
   #do search
   elif (urllib.unquote_plus(param['action']) == "search"):
     xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
@@ -591,9 +596,75 @@ if (params != ""):
     if (url != ''):
       y.playEpisode(unquote_safe(url))
   elif (urllib.unquote_plus(param['action']) == "browse_live"):
+    liz=xbmcgui.ListItem('Elävän arkiston nettiradio',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://www.yle.fi/elavaarkisto/nettiradio.asx', listitem = liz, isFolder = False)
     liz=xbmcgui.ListItem('YLE Radio 1',iconImage="DefaultAudio.png")
     ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/yleradio1.asx', listitem = liz, isFolder = False)
-  
+    liz=xbmcgui.ListItem('YleX',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://akastreaming.yle.fi/vp/fiyle/no_geo/live_f.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('YLE Radio Suomi',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://www.yle.fi/livestream/radiosuomi.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('YLE Radio Peili',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://www.yle.fi/peili/peili.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Ylen Klassinen',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/ylenklassinen.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('YLE Radio Vega',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/vega.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('YLE Radio Extrem',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/x3m.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Sámi Radio',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/samiradio.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Maakuntaradiot: Etelä-Karjalan Radio',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/etelakarjala.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Maakuntaradiot: Etelä-Savon Radio',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/etelasavo.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Maakuntaradiot: Radio Häme',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/radiohame.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Maakuntaradiot: Radio Itä-Uusimaa',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/itauusimaa.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Maakuntaradiot: Kainuun Radio',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/kainuu.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Maakuntaradiot: Radio Keski-Pohjanmaa',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/keskipohjanmaa.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Maakuntaradiot: Radio Keski-Suomi',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/keskisuomi.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Maakuntaradiot: Kymenlaakson Radio',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/kymenlaakso.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Maakuntaradiot: Lapin Radio',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/lapinradio.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Maakuntaradiot: Radio Perämeri',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/perameri.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Maakuntaradiot: Ylen läntinen',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/ylenlantinen.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Maakuntaradiot: Tampereen Radio',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/tampere.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Maakuntaradiot: Pohjanmaan Radio',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/pohjanmaa.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Maakuntaradiot: Pohjois-Karjalan Radio',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/pohjkarjala.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Maakuntaradiot: Oulu Radio',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/ouluradio.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Maakuntaradiot: Radio Savo',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/radiosavo.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Maakuntaradiot: Lahden Radio',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/lahdenradio.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Maakuntaradiot: Ylen aikainen',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/radiosuomi.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Maakuntaradiot: Satakunnan Radio',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/satakunta.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Maakuntaradiot: Turun Radio',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/turunradio.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Regionerna: Österbotten',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/vegaoster.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Regionerna: Åboland',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/vegaabo.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Regionerna: Västnyland',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/vegavast.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Regionerna: Mellannyland',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/vega.asx', listitem = liz, isFolder = False)
+    liz=xbmcgui.ListItem('Regionerna: Östnyland',iconImage="DefaultAudio.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/vegaost.asx', listitem = liz, isFolder = False)
+    
 #no parameters set, open default view
 else:
   liz=xbmcgui.ListItem(xbmc.getLocalizedString(30201),iconImage="DefaultAudio.png")
