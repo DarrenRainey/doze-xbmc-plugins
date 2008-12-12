@@ -10,6 +10,7 @@ import xbmc, xbmcgui
 import re, os, traceback
 import cookielib, htmlentitydefs
 import socket
+import time, rfc822
 
 # plugin constants
 __plugin__ = "YleAreena"
@@ -676,5 +677,6 @@ else:
   liz=xbmcgui.ListItem(xbmc.getLocalizedString(30206),iconImage="DefaultAudio.png")
   ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_live", listitem = liz, isFolder = True)  
 
-    
+#timestamp = rfc822.mktime_tz(rfc822.parsedate_tz('Thu, 11 Dec 2008 14:13:43 +0000'))
+#time.strftime("%a %m/%d/%y", datetime.datetime.fromtimestamp(timestamp).time())
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
