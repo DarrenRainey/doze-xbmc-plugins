@@ -15,9 +15,9 @@ import socket
 __plugin__ = "YleAreena"
 __author__ = "doze"
 __url__ = "http://code.google.com/p/doze-xbmc-plugins/"
-__svn_url__ = "http://doze-xbmc-plugins.googlecode.com/svn/trunk/YleAreena"
+__svn_url__ = "http://doze-xbmc-plugins.googlecode.com/svn/trunk/YleAreenaVideo"
 __credits__ = "Team XBMC + All plugin developers"
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 rootDir = xbmc.translatePath( os.path.join( os.getcwd().replace( ";", "" )))
 cacheDir = os.path.join(rootDir, 'cache')
@@ -439,24 +439,23 @@ class YleAreena:
       cFile.close()
     except Exception, value:
       dialog = xbmcgui.Dialog()
-      dialog.ok("YleAreena - " +xbmc.getLocalizedString(257), 'Exception:' +'\n'+ str(value) +'\n'+ 'Data:' +'\n'+ str(data))
+      dialog.ok("YleAreena - " +xbmc.getLocalizedString(257), 'URL:' +'\n'+ str(url) +'\n'+  'Exception:' +'\n'+ str(value) +'\n'+ 'Data:' +'\n'+ str(data))
     if (data==""):
       dialog = xbmcgui.Dialog()
-      dialog.ok("YleAreena - " +xbmc.getLocalizedString(257), xbmc.getLocalizedString(284)+ +'\n'+ 'CookieJar:'+ str(self.cookieJar))
+      dialog.ok("YleAreena - " +xbmc.getLocalizedString(257), xbmc.getLocalizedString(284) +'\n'+ 'URL:' +'\n'+ str(url) +'\n'+ 'CookieJar:'+ str(self.cookieJar))
       return
     return data
   
   def browsePrograms(self, url):
     data = self.openUrl(url)
     #search and add programs
-    rePattern = re.compile('<a href="/hae\?pid=([^\"]+)\">([^<]+)</a>[^>]+>[^>]+>([^<]+)', re.IGNORECASE + re.DOTALL + re.MULTILINE)
+    rePattern = re.compile('<a href="/hae\?pid=([^\"]+)\">([^<]+)</a>[^>]+>[^>]+>[1-9]', re.IGNORECASE + re.DOTALL + re.MULTILINE)
     matches = rePattern.findall(data)
     for id, name, count in matches:
-      if (count != '0'):
-        liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultVideo.png")
-        ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url = sys.argv[0] + "?action=browse_episodes&id="+id,listitem=liz,isFolder=True,totalItems=len(matches))
+      liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultVideo.png")
+      ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url = sys.argv[0] + "?action=browse_episodes&id="+id,listitem=liz,isFolder=True,totalItems=len(matches))
   
-  def browseEpisodes(self, url):
+  def browseEpisodes(self, url, showTitles):
     data = self.openUrl(url)
     #check to see if search returned too many matches
     strre=re.compile('hakuosumia yli 100 kpl', re.IGNORECASE)
@@ -493,9 +492,14 @@ class YleAreena:
         nextUrl = url[:pos+3] + nextpage
       ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url = sys.argv[0] + "?action=browse_episodes&nextUrl="+quote_safe(nextUrl),listitem=liz,isFolder=True)
     #search and add episodes            
-    rePattern = re.compile('<a href=\"/toista\?id=([^\"]+)\"><img src=\"([^\"]+)\"[^a]+alt=\"([^\"]+)\".*?time">(.{10,20})', re.IGNORECASE + re.DOTALL + re.MULTILINE)
+    rePattern = re.compile('<a href=\"/toista\?id=([^\"]+)\"><img src=\"([^\"]+)\"[^a]+alt=\"([^\"]+)\".*?<a[^>]+>(.*?)<.*?time">(.{10,20})', re.IGNORECASE + re.DOTALL + re.MULTILINE)
     matches = rePattern.findall(data)
-    for id, imgUrl, name, date in matches:
+    for id, imgUrl, name, title, date in matches:
+      if (showTitles == 1 and name != title):
+        #strip ending dot from title, if it exists
+        if (title[len(title)-1] == '.'):
+            title = title[0:len(title)-1]
+        name = title + ': ' +name
       liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultVideo.png",thumbnailImage=imgUrl)
       liz.setInfo( "video", { "Title"        : clean1(clean2(clean3(smart_unicode(name)))),
                 "Date"          : date[:2]+"-"+date[3:5]+"-"+date[6:10]
@@ -516,7 +520,7 @@ class YleAreena:
     f.write(search_phrase)
     f.close()
     #show episodes matching keyword
-    self.browseEpisodes('http://areena.yle.fi/hae?keyword='+search_phrase+'&filter=1,1')
+    self.browseEpisodes('http://areena.yle.fi/hae?keyword='+search_phrase+'&filter=1,1', 1)
   
 #main logic
 y=YleAreena()
@@ -551,19 +555,82 @@ if (params != ""):
       y.browseEpisodes('http://areena.yle.fi/hae?pid='+id+'&filter=1,1')
     #if nextUrl is given, display that page
     elif (nextUrl != ''):
-      y.browseEpisodes(unquote_safe(nextUrl))
+      y.browseEpisodes(unquote_safe(nextUrl),1)
   #do search
   elif (urllib.unquote_plus(param['action']) == "search"):
     xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
     xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_DATE )
     y.doSearch()
+  #ready categories
+  elif (urllib.unquote_plus(param['action']) == "browse_news"):
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_DATE )
+    y.browseEpisodes('http://areena.yle.fi/hae?cid=164618&filter=1,1', 1)
+  elif (urllib.unquote_plus(param['action']) == "browse_sports"):
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_DATE )
+    y.browseEpisodes('http://areena.yle.fi/hae?cid=164619&filter=1,1', 1)
+  elif (urllib.unquote_plus(param['action']) == "browse_current"):
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_DATE )
+    y.browseEpisodes('http://areena.yle.fi/hae?cid=164612&filter=1,1', 1)
+  elif (urllib.unquote_plus(param['action']) == "browse_documentaries"):
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_DATE )
+    y.browseEpisodes('http://areena.yle.fi/hae?cid=164620&filter=1,1', 1)
+  elif (urllib.unquote_plus(param['action']) == "browse_learning"):
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_DATE )
+    y.browseEpisodes('http://areena.yle.fi/hae?cid=164621&filter=1,1', 1)
+  elif (urllib.unquote_plus(param['action']) == "browse_culture"):
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_DATE )
+    y.browseEpisodes('http://areena.yle.fi/hae?cid=164622&filter=1,1', 1)
+  elif (urllib.unquote_plus(param['action']) == "browse_entertainment"):
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_DATE )
+    y.browseEpisodes('http://areena.yle.fi/hae?cid=164560&filter=1,1', 1)
+  elif (urllib.unquote_plus(param['action']) == "browse_music"):
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_DATE )
+    y.browseEpisodes('http://areena.yle.fi/hae?cid=164623&filter=1,1', 1)
+  elif (urllib.unquote_plus(param['action']) == "browse_drama"):
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_DATE )
+    y.browseEpisodes('http://areena.yle.fi/hae?cid=164550&filter=1,1', 1)
+  elif (urllib.unquote_plus(param['action']) == "browse_children"):
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_DATE )
+    y.browseEpisodes('http://areena.yle.fi/hae?cid=164553&filter=1,1', 1)
+
 #no parameters set, open default view
 else:
+  xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
   liz=xbmcgui.ListItem(xbmc.getLocalizedString(30201),iconImage="DefaultVideo.png")
   ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_programs", listitem = liz, isFolder = True)
   liz=xbmcgui.ListItem(xbmc.getLocalizedString(30202),iconImage="DefaultVideo.png")
   ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=search", listitem = liz, isFolder = True)
   liz=xbmcgui.ListItem('YleX TV',iconImage="DefaultVideo.png")
   ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/ylevideo4.asx?bitrate=1000000', listitem = liz, isFolder = False)
-    
+  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30205),iconImage="DefaultVideo.png")
+  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_news", listitem = liz, isFolder = True)
+  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30206),iconImage="DefaultVideo.png")
+  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_sports", listitem = liz, isFolder = True)
+  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30207),iconImage="DefaultVideo.png")
+  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_current", listitem = liz, isFolder = True)
+  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30208),iconImage="DefaultVideo.png")
+  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_documentaries", listitem = liz, isFolder = True)
+  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30209),iconImage="DefaultVideo.png")
+  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_learning", listitem = liz, isFolder = True)
+  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30210),iconImage="DefaultVideo.png")
+  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_culture", listitem = liz, isFolder = True)
+  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30211),iconImage="DefaultVideo.png")
+  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_entertainment", listitem = liz, isFolder = True)
+  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30212),iconImage="DefaultVideo.png")
+  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_music", listitem = liz, isFolder = True)
+  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30213),iconImage="DefaultVideo.png")
+  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_drama", listitem = liz, isFolder = True)
+  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30214),iconImage="DefaultVideo.png")
+  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_children", listitem = liz, isFolder = True)
+  
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
