@@ -451,11 +451,11 @@ class YleAreena:
     #search and add programs
     rePattern = re.compile('<a href="/hae\?pid=([^\"]+)\">([^<]+)</a>[^>]+>[^>]+>[1-9]', re.IGNORECASE + re.DOTALL + re.MULTILINE)
     matches = rePattern.findall(data)
-    for id, name, count in matches:
+    for id, name in matches:
       liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultVideo.png")
       ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url = sys.argv[0] + "?action=browse_episodes&id="+id,listitem=liz,isFolder=True,totalItems=len(matches))
   
-  def browseEpisodes(self, url, showTitles):
+  def browseEpisodes(self, url, showTitles = 0):
     data = self.openUrl(url)
     #check to see if search returned too many matches
     strre=re.compile('hakuosumia yli 100 kpl', re.IGNORECASE)
@@ -561,7 +561,7 @@ if (params != ""):
     xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
     xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_DATE )
     y.doSearch()
-  #ready categories
+  #pre-set categories
   elif (urllib.unquote_plus(param['action']) == "browse_news"):
     xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
     xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_DATE )
