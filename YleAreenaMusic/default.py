@@ -522,10 +522,18 @@ class YleAreena:
   def browsePodcastEpisodes(self, url):
     data = self.openUrl(url)
     #search and add programs
-    rePattern = re.compile('<item.*?<title>(.*?)</title>.*?enclosure url="([^\"]+)', re.IGNORECASE + re.DOTALL + re.MULTILINE)
+    rePattern = re.compile('<item.*?<title>(.*?)</title>.*?enclosure url="([^\"]+).*?<pubdate>(.*?)</pubdate>', re.IGNORECASE + re.DOTALL + re.MULTILINE)
     matches = rePattern.findall(data)
-    for name, url in matches:
+    for name, url, pubdate in matches:
         liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultAudio.png")
+        #try parsing a date for the podcast items
+        try:
+            timestamp = rfc822.mktime_tz(rfc822.parsedate_tz(pubdate))
+            liz.setInfo( "music", { "Title"        : clean1(clean2(clean3(smart_unicode(name)))),
+                "Date"          : time.strftime ("%d-%m-%Y", time.localtime (timestamp))
+                })
+        except:
+            traceback.print_exc(file = sys.stdout)
         ok=xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]),url = sys.argv[0] + "?action=play_episode&url="+quote_safe(url),listitem=liz,isFolder=False,totalItems=len(matches))
          
   def doSearch(self):
@@ -570,8 +578,10 @@ if (params != ""):
   elif (urllib.unquote_plus(param['action']) == "browse_podcasts"):
     xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
     y.browsePodcasts('http://areena.yle.fi/podcast')
+  #browse podcast episodes
   elif (urllib.unquote_plus(param['action']) == "browse_podcast_episodes"):
     xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
+    xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_DATE )
     url = param.get('url', '')
     if (url != ''):
         y.browsePodcastEpisodes(unquote_safe(url))
@@ -677,6 +687,4 @@ else:
   liz=xbmcgui.ListItem(xbmc.getLocalizedString(30206),iconImage="DefaultAudio.png")
   ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_live", listitem = liz, isFolder = True)  
 
-#timestamp = rfc822.mktime_tz(rfc822.parsedate_tz('Thu, 11 Dec 2008 14:13:43 +0000'))
-#time.strftime("%a %m/%d/%y", datetime.datetime.fromtimestamp(timestamp).time())
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
