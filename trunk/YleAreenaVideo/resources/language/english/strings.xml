@@ -6,4 +6,14 @@
   <string id="30202">Search from Arena</string>
   <string id="30203">Search returned over 100 matches. Try more specific keyword.</string>
   <string id="30204">Search did not find any matches. Try another keyword.</string>
+  <string id="30205">News</string>
+  <string id="30206">Sports</string>
+  <string id="30207">Current affairs programs</string>
+  <string id="30208">Documentaries</string>
+  <string id="30209">Learning and science</string>
+  <string id="30210">Culture</string>
+  <string id="30211">Entertainment</string>
+  <string id="30212">Music</string>
+  <string id="30213">Drama</string>
+  <string id="30214">Children</string>
 </strings>
