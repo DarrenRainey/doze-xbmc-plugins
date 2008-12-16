@@ -497,9 +497,10 @@ class YleAreena:
     for id, imgUrl, name, title, date in matches:
       if (showTitles == 1 and name != title):
         #strip ending dot from title, if it exists
-        if (title[len(title)-1] == '.'):
-            title = title[0:len(title)-1]
-        name = title + ': ' +name
+        if (len(title) > 0): 
+          if (title[len(title)-1] == '.'):
+              title = title[0:len(title)-1]
+          name = title + ': ' +name
       liz=xbmcgui.ListItem(clean1(clean2(clean3(smart_unicode(name)))),iconImage="DefaultVideo.png",thumbnailImage=imgUrl)
       liz.setInfo( "video", { "Title"        : clean1(clean2(clean3(smart_unicode(name)))),
                 "Date"          : date[:2]+"-"+date[3:5]+"-"+date[6:10]
@@ -602,6 +603,27 @@ if (params != ""):
     xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_LABEL )
     xbmcplugin.addSortMethod( handle=int( sys.argv[ 1 ] ), sortMethod=xbmcplugin.SORT_METHOD_DATE )
     y.browseEpisodes('http://areena.yle.fi/hae?cid=164553&filter=1,1', 1)
+  elif (urllib.unquote_plus(param['action']) == "browse_areas"):
+    liz=xbmcgui.ListItem(xbmc.getLocalizedString(30205),iconImage="DefaultVideo.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_news", listitem = liz, isFolder = True)
+    liz=xbmcgui.ListItem(xbmc.getLocalizedString(30206),iconImage="DefaultVideo.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_sports", listitem = liz, isFolder = True)
+    liz=xbmcgui.ListItem(xbmc.getLocalizedString(30207),iconImage="DefaultVideo.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_current", listitem = liz, isFolder = True)
+    liz=xbmcgui.ListItem(xbmc.getLocalizedString(30208),iconImage="DefaultVideo.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_documentaries", listitem = liz, isFolder = True)
+    liz=xbmcgui.ListItem(xbmc.getLocalizedString(30209),iconImage="DefaultVideo.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_learning", listitem = liz, isFolder = True)
+    liz=xbmcgui.ListItem(xbmc.getLocalizedString(30210),iconImage="DefaultVideo.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_culture", listitem = liz, isFolder = True)
+    liz=xbmcgui.ListItem(xbmc.getLocalizedString(30211),iconImage="DefaultVideo.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_entertainment", listitem = liz, isFolder = True)
+    liz=xbmcgui.ListItem(xbmc.getLocalizedString(30212),iconImage="DefaultVideo.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_music", listitem = liz, isFolder = True)
+    liz=xbmcgui.ListItem(xbmc.getLocalizedString(30213),iconImage="DefaultVideo.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_drama", listitem = liz, isFolder = True)
+    liz=xbmcgui.ListItem(xbmc.getLocalizedString(30214),iconImage="DefaultVideo.png")
+    ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_children", listitem = liz, isFolder = True)
 
 #no parameters set, open default view
 else:
@@ -612,25 +634,7 @@ else:
   ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=search", listitem = liz, isFolder = True)
   liz=xbmcgui.ListItem('YleX TV',iconImage="DefaultVideo.png")
   ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = 'http://yle.fi/livestream/ylevideo4.asx?bitrate=1000000', listitem = liz, isFolder = False)
-  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30205),iconImage="DefaultVideo.png")
-  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_news", listitem = liz, isFolder = True)
-  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30206),iconImage="DefaultVideo.png")
-  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_sports", listitem = liz, isFolder = True)
-  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30207),iconImage="DefaultVideo.png")
-  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_current", listitem = liz, isFolder = True)
-  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30208),iconImage="DefaultVideo.png")
-  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_documentaries", listitem = liz, isFolder = True)
-  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30209),iconImage="DefaultVideo.png")
-  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_learning", listitem = liz, isFolder = True)
-  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30210),iconImage="DefaultVideo.png")
-  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_culture", listitem = liz, isFolder = True)
-  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30211),iconImage="DefaultVideo.png")
-  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_entertainment", listitem = liz, isFolder = True)
-  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30212),iconImage="DefaultVideo.png")
-  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_music", listitem = liz, isFolder = True)
-  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30213),iconImage="DefaultVideo.png")
-  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_drama", listitem = liz, isFolder = True)
-  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30214),iconImage="DefaultVideo.png")
-  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_children", listitem = liz, isFolder = True)
+  liz=xbmcgui.ListItem(xbmc.getLocalizedString(30215),iconImage="DefaultAudio.png")
+  ok = xbmcplugin.addDirectoryItem(handle = int(sys.argv[1]), url = sys.argv[0] + "?action=browse_areas", listitem = liz, isFolder = True)
   
 xbmcplugin.endOfDirectory(int(sys.argv[1]))
