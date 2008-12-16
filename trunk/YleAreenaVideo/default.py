@@ -17,7 +17,8 @@ __author__ = "doze"
 __url__ = "http://code.google.com/p/doze-xbmc-plugins/"
 __svn_url__ = "http://doze-xbmc-plugins.googlecode.com/svn/trunk/YleAreenaVideo"
 __credits__ = "Team XBMC + All plugin developers"
-__version__ = "1.0.1"
+__version__ = "1.0.2"
+__tested__ = "Script was tested in Atlantis final on Xbox. Video / Music streams seems to not work in other platforms"
 
 rootDir = xbmc.translatePath( os.path.join( os.getcwd().replace( ";", "" )))
 cacheDir = os.path.join(rootDir, 'cache')
